@@ -4,13 +4,13 @@ Idena pool manager automates the process of managing an Idena pool. It logs the 
 
 ## Setup
 
-1. Install [Deno](https://deno.com/manual@v1.33.3/getting_started/installation):
+Install [Deno](https://deno.com/manual@v1.33.3/getting_started/installation):
 
 ```bash
 curl -fsSL https://deno.land/x/install/install.sh | sh
 ```
 
-2. Setup the project:
+Setup the project:
 
 ```bash
 git clone https://github.com/Swafox/idena-pool-manager.git
