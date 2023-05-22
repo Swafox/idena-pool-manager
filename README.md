@@ -24,6 +24,16 @@ deno cache --unstable --reload --lock=deno.lock --lock-write main.ts
 
 ## Usage
 
+### Cronjob
+
+Create a cronjob to run the script every day at 18:00 (UTC*):
+
+```bash
+0 18 * * * cd /path/to/idena-pool-manager && deno task payout
+```
+
+* check your local timezone with `date +%Z` and adjust the cronjob accordingly
+
 ### Main commands
 
 ```bash
