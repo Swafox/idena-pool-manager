@@ -119,9 +119,9 @@ async function payout() {
 
       const report = `
 👤 Address: ${delegator.address}
-Mining reward: ${lastEpochMining.result[1].amount} for ${
-        lastEpochMining.result[1].epoch
-      } epoch 
+Mining reward w/commission: ${
+        calculatePayout(lastEpochMining.result[1].amount)
+      } for ${lastEpochMining.result[1].epoch} epoch 
 Validation reward: ${lastEpochValidation.result.delegateeReward.amount} for ${
         epoch.result.epoch - 1
       } epoch 
