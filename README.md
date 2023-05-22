@@ -1,6 +1,9 @@
 # Idena Pool Manager
 
-Idena pool manager automates the process of managing an Idena pool. It logs the delegators and their stake in a local database and generates a transaction automatically. All you have to do is to confirm. It also shows information about the pool and the delegators.
+Idena pool manager automates the process of managing an Idena pool. It logs the
+delegators and their stake in a local database and generates a transaction
+automatically. All you have to do is to confirm. It also shows information about
+the pool and the delegators.
 
 ## Setup
 
@@ -38,4 +41,6 @@ deno run --allow-all --unstable main.ts checkDB <address> # checks the local db 
 
 ### Disclaimer
 
-This software is provided as is. Use at your own risk. Idena pool manager will not send any transactions on your behalf. Idena pool manager, nor the author are responsible for any loss of your funds.
+This software is provided as is. Use at your own risk. Idena pool manager will
+not send any transactions on your behalf. Idena pool manager, nor the author are
+responsible for any loss of your funds.
