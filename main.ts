@@ -126,7 +126,8 @@ Validation reward: ${lastEpochValidation.result.delegateeReward.amount} for ${
         epoch.result.epoch - 1
       } epoch 
       
-Total reward: ${totalReward} 💸`;
+Total reward: ${totalReward} 💸
+Pay: https://app.idena.io/dna/send?address=${delegator.address}&amount=${totalReward}}`;
 
       // Store the last epoch in the keystore
       await kv.set(["lastEpoch"], epoch.result.epoch);
