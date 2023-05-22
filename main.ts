@@ -1,9 +1,14 @@
 import * as api from "./src/api.ts"; // Import API functions
 import { load } from "https://deno.land/std@0.170.0/dotenv/mod.ts";
 import chalkin from "https://deno.land/x/chalkin@v0.1.3/mod.ts";
+import { Bot } from "https://deno.land/x/grammy@v1.15.3/mod.ts";
 
 const env = await load(); // Load the .env file
 const poolAddress = env["POOL_ADDRESS"] as string; // Get the address from .env
+const TG_AUTH = env["TG_AUTH"] as string; // Get the telegram bot token from .env
+const TELEGRAM_CHAT_ID = env["TELEGRAM_CHAT_ID"] as string; // Get the telegram chat id from .env
+
+const bot = new Bot(TG_AUTH);
 
 const kv = await Deno.openKv(); // Initialize local keystore db
 
@@ -81,8 +86,16 @@ async function payout() {
     Deno.exit(1);
   } else if (epoch.result.epoch == lastEpoch.value) {
     console.log("No new epoch");
+    await bot.api.sendMessage(
+      TELEGRAM_CHAT_ID,
+      "No new epoch, I checked. If there was one, please report to repo's issue tracker",
+    );
     Deno.exit(1);
   } else {
+    bot.api.sendMessage(
+      TELEGRAM_CHAT_ID,
+      `Happy new epoch! ${epoch.result.epoch} 🎉`,
+    );
     const delegators = await api.getPoolDelegators(poolAddress);
     for (const delegator of delegators.result) {
       const lastEpochMining = await api.miningReward(delegator.address);
@@ -104,16 +117,21 @@ async function payout() {
         Number(calculatePayout(lastEpochMining.result[1].amount)) +
         Number(lastEpochValidation.result.delegateeReward.amount);
 
-      console.log(`
-Address: ${delegator.address}
+      const report = `
+👤 Address: ${delegator.address}
 Mining reward: ${lastEpochMining.result[1].amount} for ${
         lastEpochMining.result[1].epoch
-      } epoch
+      } epoch 
 Validation reward: ${lastEpochValidation.result.delegateeReward.amount} for ${
         epoch.result.epoch - 1
-      } epoch
-Total reward: ${totalReward}
-`);
+      } epoch 
+      
+Total reward: ${totalReward} 💸`;
+
+      // Store the last epoch in the keystore
+      await kv.set(["lastEpoch"], epoch.result.epoch);
+
+      await bot.api.sendMessage(TELEGRAM_CHAT_ID, report);
     }
   }
 }
