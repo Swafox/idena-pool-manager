@@ -32,11 +32,12 @@ Create a cronjob to run the script every day at 18:00 (UTC*):
 0 18 * * * cd /path/to/idena-pool-manager && deno task payout
 ```
 
-* check your local timezone with `date +%Z` and adjust the cronjob accordingly
+- check your local timezone with `date +%Z` and adjust the cronjob accordingly
 
 ### Telegram bot
 
-Create a Telegram bot via [BotFather](https://t.me/botfather) and follow these steps:
+Create a Telegram bot via [BotFather](https://t.me/botfather) and follow these
+steps:
 
 1. Post one message from User to the Bot.
 2. Open `https://api.telegram.org/bot<Bot_token>/getUpdates` page.
