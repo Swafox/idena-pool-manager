@@ -24,7 +24,7 @@ export async function getPoolSizeHistory(address: string) {
 
 export async function getDelegatorRewards(epoch: number, address: string) {
   return await callAPI(
-    `/epoch/${epoch}/address/${address}/delegateeRewards?limit=30`,
+    `/epoch/${epoch}/address/${address}/delegateeRewards?limit=100`,
   );
 }
 
@@ -36,10 +36,14 @@ export async function getLastEpoch() {
   return await callAPI(`/Epoch/Last`);
 }
 
-export async function getEpoch(epoch: number) {
-  return await callAPI(`/Epoch/${epoch}`);
-}
-
 export async function getTxsForEpoch(address: string) {
   return await callAPI(`/address/${address}/txs?limit=50`);
+}
+
+export async function miningReward(address: string) {
+  return await callAPI(`/Address/${address}/MiningRewardSummaries?limit=5`);
+}
+
+export async function validationSummary(epoch: number, address: string) {
+  return await callAPI(`/Epoch/${epoch}/Identity/${address}/ValidationSummary`);
 }

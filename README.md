@@ -26,7 +26,6 @@ deno cache --unstable --reload --lock=deno.lock --lock-write main.ts
 ```bash
 deno task info # shows information about the pool
 deno task delegators # shows all delegators in the pool
-deno task log # logs delegators and their stake in a local db
 deno task payout # pays out the delegators
 ```
 

@@ -15,6 +15,14 @@ if (poolAddress == null) {
   Deno.exit(1);
 }
 
+// Init functions
+async function init() {
+  // get the last epoch and store it in the keystore
+  const epoch = await api.getLastEpoch();
+  await kv.set(["lastEpoch"], epoch.result.epoch);
+  console.log(`Current epoch: ${epoch.result.epoch}`);
+}
+
 // Check that a command was provided
 if (Deno.args.length == 0) {
   console.log("Please provide a command");
@@ -46,25 +54,6 @@ Stake: ${chalkin.green(delegator.stake)}
   }
 }
 
-// Records the delegator stake in the local db
-async function recordDelegatorStake() {
-  const delegators = await api.getPoolDelegators(poolAddress);
-  console.log(`Delegators: ${delegators.result.length}`);
-  for (const delegator of delegators.result) {
-    await kv.set(["delegators", delegator.address], { stake: delegator.stake });
-  }
-}
-
-// Get local delegator stake
-async function getKvDelegatorStake(address: string) {
-  try {
-    const delegatorStake = await kv.get(["delegators", address]);
-    return delegatorStake;
-  } catch (error) {
-    throw error;
-  }
-}
-
 // List all transactions for an address
 async function listTsx(address: string) {
   const txs = await api.getTxsForEpoch(address);
@@ -72,95 +61,67 @@ async function listTsx(address: string) {
 }
 
 // Calculate payout for a delegator
-function calculatePayout(
-  stakeStart: number,
-  stakeEnd: number,
-  replenishAmount?: number,
-) {
-  let stakeDiff = 0;
-  if (replenishAmount) {
-    stakeDiff = stakeEnd - stakeStart - replenishAmount;
-    console.log("Replenish was found, difference now is: " + stakeDiff + "\n");
-  } else {
-    stakeDiff = stakeEnd - stakeStart;
-  }
-
-  const balance = ((stakeDiff * 100) / 20) - stakeDiff;
-  console.log("Balance: " + balance + "\n");
-  const total = balance + stakeDiff;
-  console.log("Total: " + total + "\n");
-  const commission = total * 0.15;
-  console.log("Commission: " + commission + "\n");
-  const payout = balance - commission;
+function calculatePayout(reward: number) {
+  reward = Number(reward);
+  const totalMiningReward: number = (reward * 100) / 20 - reward;
+  const balance: number = Number(totalMiningReward) + reward;
+  const poolCommission: number = balance * 0.2;
+  const payout: number = totalMiningReward - poolCommission;
   return payout;
 }
 
 // Calculate payout for all delegators and generate payout txs
 async function payout() {
-  const delegators = await api.getPoolDelegators(poolAddress);
-  for (const delegator of delegators.result) {
-    const delegatorLocalStake = await kv.get(["delegators", delegator.address]); // local
-    let stakeDiff = delegator.stake - delegatorLocalStake.value.stake as number;
-    console.log(
-      `${
-        chalkin.blue(delegator.address)
-      } has ${delegator.stake}, while ${delegatorLocalStake.value.stake} in local db. Raw difference: ${
-        stakeDiff > 0 ? chalkin.green(stakeDiff) : chalkin.red(stakeDiff)
-      }`,
-    );
+  const epoch = await api.getLastEpoch();
 
-    const tsx = await api.getTxsForEpoch(delegator.address);
-    const lastEpochNum = await api.getLastEpoch();
-    const lastEpochTime = await api.getEpoch(lastEpochNum.result.epoch - 1);
+  // Get the last epoch from the keystore
+  const lastEpoch = await kv.get(["lastEpoch"]);
+  if (lastEpoch.value == null) {
+    console.log("Please run init first");
+    Deno.exit(1);
+  } else if (epoch.result.epoch == lastEpoch.value) {
+    console.log("No new epoch");
+    Deno.exit(1);
+  } else {
+    const delegators = await api.getPoolDelegators(poolAddress);
+    for (const delegator of delegators.result) {
+      const lastEpochMining = await api.miningReward(delegator.address);
+      const lastEpochValidation = await api.validationSummary(
+        epoch.result.epoch - 1,
+        delegator.address,
+      );
 
-    let replenish = false;
-    let totalWComission = 0;
-    for (const tx of tsx.result) {
-      if (tx.timestamp > lastEpochTime.result.validationTime) {
-        if (tx.type == "ReplenishStakeTx") {
-          totalWComission = calculatePayout(
-            delegatorLocalStake.value.stake as number,
-            delegator.stake,
-            tx.amount,
-          );
-          break;
-        }
-      } else {
-        totalWComission = calculatePayout(
-          delegatorLocalStake.value.stake as number,
-          delegator.stake,
+      if (lastEpochMining.result[1].epoch != epoch.result.epoch - 1) {
+        console.log(
+          `Mining reward for ${delegator.address} is not available for epoch ${
+            epoch.result.epoch - 1
+          }`,
         );
         break;
       }
+
+      const totalReward =
+        Number(calculatePayout(lastEpochMining.result[1].amount)) +
+        Number(lastEpochValidation.result.delegateeReward.amount);
+
+      console.log(`
+Address: ${delegator.address}
+Mining reward: ${lastEpochMining.result[1].amount} for ${
+        lastEpochMining.result[1].epoch
+      } epoch
+Validation reward: ${lastEpochValidation.result.delegateeReward.amount} for ${
+        epoch.result.epoch - 1
+      } epoch
+Total reward: ${totalReward}
+`);
     }
-
-    console.log(
-      `Total payout for ${chalkin.blue(delegator.address)}: ${
-        chalkin.green(totalWComission)
-      }`,
-    );
-
-    // create transaction to send totalWCommision to delegator
-    console.log(
-      `Pay: ${
-        chalkin.red(
-          `https://app.idena.io/dna/send?address=${delegator.address}&amount=${totalWComission}&comment=Delegator%20payout%20for%20${poolAddress}`,
-        )
-      }\n\n`,
-    );
-  }
-  console.log("Do you want to log the new delegator stakes? (y/n)");
-  const answer = prompt();
-  if (answer == "y") {
-    await recordDelegatorStake().then(() =>
-      console.log("Delegator stake recorded")
-    );
-  } else {
-    console.log("Delegator stake not recorded");
   }
 }
 
 switch (Deno.args[0]) {
+  case "init":
+    await init();
+    break;
   case "info":
     await poolInfo();
     break;
@@ -168,26 +129,12 @@ switch (Deno.args[0]) {
     console.log("Delegators and their current stake: \n");
     await poolDelegators();
     break;
-  case "log":
-    await recordDelegatorStake().then(() =>
-      console.log("Delegator stake recorded")
-    );
-    break;
   case "payout":
     await payout();
     break;
   case "listTxs":
     await listTsx(Deno.args[1]);
     break;
-  case "checkDB": {
-    const delegatorLocalStake = await getKvDelegatorStake(Deno.args[1]);
-    console.log(
-      chalkin.blue(delegatorLocalStake.key[1]) + " has " +
-        chalkin.green(delegatorLocalStake.value.stake as string) +
-        " in local db",
-    );
-    break;
-  }
   default:
     console.log("Unknown command");
     Deno.exit(1);

@@ -2,7 +2,7 @@
   "tasks": {
     "info": "deno run --allow-all --unstable main.ts info",
     "delegators": "deno run --allow-all --unstable main.ts delegators",
-    "log": "deno run --allow-all --unstable main.ts log",
-    "payout": "deno run --allow-all --unstable main.ts payout"
+    "payout": "deno run --allow-all --unstable main.ts payout",
+    "init": "deno run --allow-all --unstable main.ts init"
   }
 }
