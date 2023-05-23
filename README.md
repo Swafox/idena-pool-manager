@@ -20,9 +20,12 @@ git clone https://github.com/Swafox/idena-pool-manager.git
 cp .env.example .env
 # Edit .env by adding your pool address
 deno cache --unstable --reload --lock=deno.lock --lock-write main.ts
+deno task init
 ```
 
 ## Usage
+
+## Automated
 
 ### Cronjob
 
@@ -34,14 +37,18 @@ Create a cronjob to run the script every day at 18:00 (UTC*):
 
 - check your local timezone with `date +%Z` and adjust the cronjob accordingly
 
+## Manual
+
+Run `deno task payout` 1h after the validation.
+
 ### Telegram bot
 
 Create a Telegram bot via [BotFather](https://t.me/botfather) and follow these
 steps:
 
-1. Post one message from User to the Bot.
-2. Open `https://api.telegram.org/bot<Bot_token>/getUpdates` page.
-3. Find this message and navigate to the result->message->chat->id key.
+1. Open `https://api.telegram.org/bot<Bot_token>/getUpdates` page.
+2. Send one message to the Bot.
+3. Find this message and navigate to the `result->message->chat->id` key.
 4. Put this id to the .env file as TELEGRAM_CHAT_ID.
 
 The bot will send you a message every time it checks the pool.
