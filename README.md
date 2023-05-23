@@ -27,8 +27,6 @@ deno task init
 
 ## Automated
 
-### Cronjob
-
 Create a cronjob to run the script every day at 18:00 (UTC*):
 
 ```bash
