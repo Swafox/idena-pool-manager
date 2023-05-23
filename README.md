@@ -5,7 +5,7 @@ delegators and their stake in a local database and generates a transaction
 automatically. All you have to do is to confirm. It also shows information about
 the pool and the delegators.
 
-## Setup
+# Setup
 
 Install [Deno](https://deno.com/manual@v1.33.3/getting_started/installation):
 
@@ -23,7 +23,7 @@ deno cache --unstable --reload --lock=deno.lock --lock-write main.ts
 deno task init
 ```
 
-## Usage
+# Usage
 
 ## Automated
 
@@ -37,11 +37,11 @@ Create a cronjob to run the script every day at 18:00 (UTC*):
 
 - check your local timezone with `date +%Z` and adjust the cronjob accordingly
 
-## Manual
+### Manual
 
 Run `deno task payout` 1h after the validation.
 
-### Telegram bot
+## Telegram bot
 
 Create a Telegram bot via [BotFather](https://t.me/botfather) and follow these
 steps:
@@ -53,7 +53,7 @@ steps:
 
 The bot will send you a message every time it checks the pool.
 
-### Main commands
+## Main commands
 
 ```bash
 deno task info # shows information about the pool
@@ -61,14 +61,14 @@ deno task delegators # shows all delegators in the pool
 deno task payout # pays out the delegators
 ```
 
-### Experimental commands
+## Experimental commands
 
 ```bash
 deno run --allow-all --unstable main.ts listTxs <address> # lists all transactions for an address
 deno run --allow-all --unstable main.ts checkDB <address> # checks the local db entry for the given address
 ```
 
-### Disclaimer
+# Disclaimer
 
 This software is provided as is. Use at your own risk. Idena pool manager will
 not send any transactions on your behalf. Idena pool manager, nor the author are
