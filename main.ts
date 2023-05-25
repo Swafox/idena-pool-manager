@@ -79,20 +79,8 @@ function calculatePayout(reward: number) {
 async function payout() {
   const epoch = await api.getLastEpoch();
 
-  // Get the last epoch from the keystore
-  // const lastEpoch = await kv.get(["lastEpoch"]);
-  // if (lastEpoch.value == null) {
-  //   console.log("Please run init first");
-  //   Deno.exit(1);
-  // } else if (epoch.result.epoch == lastEpoch.value) {
-  //   console.log("No new epoch");
-  //   await bot.api.sendMessage(
-  //     TELEGRAM_CHAT_ID,
-  //     "No new epoch, I checked. If there was one, please report to repo's issue tracker",
-  //   );
-  //   Deno.exit(1);
-  // } else {
-  if (true) {
+  const lastEpoch = await kv.get(["lastEpoch"]);
+  if (Deno.args[1] == "force" || epoch.result.epoch > lastEpoch.value) {
     bot.api.sendMessage(
       TELEGRAM_CHAT_ID,
       `Happy new epoch! ${epoch.result.epoch} 🎉`,
@@ -138,6 +126,20 @@ Pay: https://app.idena.io/dna/send?address=${delegator.address}&amount=${totalRe
       }
     }
     await kv.set(["lastEpoch"], epoch.result.epoch);
+  } else if (lastEpoch.value == null) {
+    console.log("Please run init first");
+    Deno.exit(1);
+  } else if (epoch.result.epoch == lastEpoch.value) {
+    console.log("No new epoch");
+    await bot.api.sendMessage(
+      TELEGRAM_CHAT_ID,
+      "No new epoch, I checked. If there was one, please report to repo's issue tracker",
+    );
+    Deno.exit(1);
+  } else {
+    console.log("Something went wrong");
+    await bot.api.sendMessage(TELEGRAM_CHAT_ID, "Something went wrong");
+    Deno.exit(1);
   }
 }
 

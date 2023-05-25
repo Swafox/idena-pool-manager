@@ -37,7 +37,7 @@ Create a cronjob to run the script every day at 18:00 (UTC*):
 
 ### Manual
 
-Run `deno task payout` 1h after the validation.
+Run `deno task payout force` 1h after the validation.
 
 ## Telegram bot
 
