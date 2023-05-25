@@ -80,23 +80,25 @@ async function payout() {
   const epoch = await api.getLastEpoch();
 
   // Get the last epoch from the keystore
-  const lastEpoch = await kv.get(["lastEpoch"]);
-  if (lastEpoch.value == null) {
-    console.log("Please run init first");
-    Deno.exit(1);
-  } else if (epoch.result.epoch == lastEpoch.value) {
-    console.log("No new epoch");
-    await bot.api.sendMessage(
-      TELEGRAM_CHAT_ID,
-      "No new epoch, I checked. If there was one, please report to repo's issue tracker",
-    );
-    Deno.exit(1);
-  } else {
+  // const lastEpoch = await kv.get(["lastEpoch"]);
+  // if (lastEpoch.value == null) {
+  //   console.log("Please run init first");
+  //   Deno.exit(1);
+  // } else if (epoch.result.epoch == lastEpoch.value) {
+  //   console.log("No new epoch");
+  //   await bot.api.sendMessage(
+  //     TELEGRAM_CHAT_ID,
+  //     "No new epoch, I checked. If there was one, please report to repo's issue tracker",
+  //   );
+  //   Deno.exit(1);
+  // } else {
+  if (true) {
     bot.api.sendMessage(
       TELEGRAM_CHAT_ID,
       `Happy new epoch! ${epoch.result.epoch} 🎉`,
     );
     const delegators = await api.getPoolDelegators(poolAddress);
+    console.log(delegators);
     for (const delegator of delegators.result) {
       const lastEpochMining = await api.miningReward(delegator.address);
       const lastEpochValidation = await api.validationSummary(
@@ -105,35 +107,37 @@ async function payout() {
       );
 
       if (lastEpochMining.result[1].epoch != epoch.result.epoch - 1) {
-        console.log(
+        const msg =
           `Mining reward for ${delegator.address} is not available for epoch ${
             epoch.result.epoch - 1
-          }`,
-        );
-        break;
-      }
+          }`;
+        console.log(msg);
+        await bot.api.sendMessage(TELEGRAM_CHAT_ID, msg);
+      } else {
+        const totalReward =
+          Number(calculatePayout(lastEpochMining.result[1].amount)) +
+          Number(lastEpochValidation.result.delegateeReward.amount);
 
-      const totalReward =
-        Number(calculatePayout(lastEpochMining.result[1].amount)) +
-        Number(lastEpochValidation.result.delegateeReward.amount);
-
-      const report = `
+        const report = `
 👤 Address: ${delegator.address}
+
 Mining reward w/commission: ${
-        calculatePayout(lastEpochMining.result[1].amount)
-      } for ${lastEpochMining.result[1].epoch} epoch 
+          calculatePayout(lastEpochMining.result[1].amount)
+        } for ${lastEpochMining.result[1].epoch} epoch 
+
 Validation reward: ${lastEpochValidation.result.delegateeReward.amount} for ${
-        epoch.result.epoch - 1
-      } epoch 
+          epoch.result.epoch - 1
+        } epoch 
       
-Total reward: ${totalReward} 💸
+Total reward: ${totalReward}  💸
 Pay: https://app.idena.io/dna/send?address=${delegator.address}&amount=${totalReward}}`;
 
-      // Store the last epoch in the keystore
-      await kv.set(["lastEpoch"], epoch.result.epoch);
+        console.log(report);
 
-      await bot.api.sendMessage(TELEGRAM_CHAT_ID, report);
+        await bot.api.sendMessage(TELEGRAM_CHAT_ID, report);
+      }
     }
+    await kv.set(["lastEpoch"], epoch.result.epoch);
   }
 }
 
