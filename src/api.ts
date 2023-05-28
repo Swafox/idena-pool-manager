@@ -41,7 +41,7 @@ export async function getTxsForEpoch(address: string) {
 }
 
 export async function miningReward(address: string) {
-  return await callAPI(`/Address/${address}/MiningRewardSummaries?limit=5`);
+  return await callAPI(`/Address/${address}/MiningRewardSummaries?limit=2`);
 }
 
 export async function validationSummary(epoch: number, address: string) {
