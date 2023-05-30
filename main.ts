@@ -85,16 +85,27 @@ async function payout() {
       TELEGRAM_CHAT_ID,
       `Happy new epoch! ${epoch.result.epoch} 🎉`,
     );
+
     const delegators = await api.getPoolDelegators(poolAddress);
     for (const delegator of delegators.result) {
+      const identity = await api.identity(
+        epoch.result.epoch - 1,
+        delegator.address,
+      );
+
       if (
-        delegator.state === "Newbie" || delegator.state === "Candidate" ||
-        delegator.state === "Invite" || delegator.state === "Suspended" ||
-        delegator.state === "Zombie" || delegator.state === "Killed"
+        identity.result.prevState === "Newbie" ||
+        identity.result.prevState === "Candidate" ||
+        identity.result.prevState === "Invite" ||
+        identity.result.prevState === "Suspended" ||
+        identity.result.prevState === "Zombie" ||
+        identity.result.prevState === "Killed"
       ) {
         await bot.api.sendMessage(
           TELEGRAM_CHAT_ID,
-          `${delegator.address} is a ${delegator.state}, skipping`,
+          `${delegator.address} was a ${identity.result.prevState} in ${
+            epoch.result.epoch - 1
+          }, skipping`,
         );
         continue;
       } else {
@@ -103,8 +114,6 @@ async function payout() {
           epoch.result.epoch - 1,
           delegator.address,
         );
-
-        console.dir(lastEpochMining);
 
         if (
           (lastEpochMining.result[0].epoch === epoch.result.epoch - 1) ||
@@ -124,6 +133,8 @@ async function payout() {
 
           const report = `
 👤 Address: ${delegator.address}
+
+This identity was a ${identity.result.prevState} 
 
 Mining reward w/commission: ${
             calculatePayout(lastEpochMining.result[index].amount)

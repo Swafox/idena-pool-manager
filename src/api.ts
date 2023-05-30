@@ -47,3 +47,7 @@ export async function miningReward(address: string) {
 export async function validationSummary(epoch: number, address: string) {
   return await callAPI(`/Epoch/${epoch}/Identity/${address}/ValidationSummary`);
 }
+
+export async function identity(epoch: number, address: string) {
+  return await callAPI(`/Epoch/${epoch}/Identity/${address}`);
+}
