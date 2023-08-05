@@ -35,14 +35,17 @@ if (Deno.args.length == 0) {
 }
 
 // Info command that call the pool info api
-async function poolInfo() { // async function since all API calls are asynchronous
+async function poolInfo() {
+  // async function since all API calls are asynchronous
   const info = await api.getPool(poolAddress);
   console.log(`
 Address: ${info.result.address}
 Size: ${chalkin.blue(info.result.size)}
 Total Stake: ${chalkin.green(info.result.totalStake)}
 Total Validated Stake: ${
-    chalkin.greenBright(info.result.totalValidatedStake)
+    chalkin.greenBright(
+      info.result.totalValidatedStake,
+    )
   } \n
 `);
 }
@@ -97,8 +100,6 @@ async function payout() {
         identity.result.prevState === "Newbie" ||
         identity.result.prevState === "Candidate" ||
         identity.result.prevState === "Invite" ||
-        identity.result.prevState === "Suspended" ||
-        identity.result.prevState === "Zombie" ||
         identity.result.prevState === "Killed"
       ) {
         await bot.api.sendMessage(
@@ -116,13 +117,11 @@ async function payout() {
         );
 
         if (
-          (lastEpochMining.result[0].epoch === epoch.result.epoch - 1) ||
-          (lastEpochMining.result[1].epoch === epoch.result.epoch - 1)
+          lastEpochMining.result[0].epoch === epoch.result.epoch - 1 ||
+          lastEpochMining.result[1].epoch === epoch.result.epoch - 1
         ) {
           const index =
-            (lastEpochMining.result[0].epoch === epoch.result.epoch - 1)
-              ? 0
-              : 1;
+            lastEpochMining.result[0].epoch === epoch.result.epoch - 1 ? 0 : 1;
           const miningMoney = calculatePayout(
             lastEpochMining.result[index].amount,
           );
@@ -137,16 +136,22 @@ async function payout() {
 This identity was a ${identity.result.prevState} 
 
 Mining reward w/commission: ${
-            calculatePayout(lastEpochMining.result[index].amount)
+            Math.round(
+              calculatePayout(lastEpochMining.result[index].amount) * 100,
+            ) / 100
           } for ${lastEpochMining.result[index].epoch} epoch 
 
 Validation reward: ${
-            lastEpochValidation.result?.delegateeReward?.amount ??
+            Math.round(
+                  lastEpochValidation.result?.delegateeReward?.amount * 100,
+                ) / 100 ??
               "No validation reward"
           } for ${epoch.result.epoch - 1} epoch 
 
-Total reward: ${totalReward}  💸
-Pay: https://app.idena.io/dna/send?address=${delegator.address}&amount=${totalReward}}`;
+Total reward: ${Math.round(totalReward * 100) / 100}  💸
+Pay: https://app.idena.io/dna/send?address=${delegator.address}&amount=${
+            Math.round(totalReward * 100) / 100
+          }`;
 
           console.log(report);
 
