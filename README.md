@@ -18,7 +18,7 @@ Setup the project:
 ```bash
 git clone https://github.com/Swafox/idena-pool-manager.git
 cp .env.example .env
-# Edit .env by adding your pool address
+# Edit .env by adding your pool address and following the Telegram bot setup
 deno cache --unstable --reload --lock=deno.lock --lock-write main.ts
 deno task init
 ```
@@ -27,7 +27,7 @@ deno task init
 
 ## Automated
 
-Create a cronjob to run the script every day at 18:00 (UTC*):
+Create a cronjob to run the script every day at 18:00 (UTC\*):
 
 ```bash
 0 18 * * * cd /path/to/idena-pool-manager && deno task payout

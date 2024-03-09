@@ -83,7 +83,9 @@ async function payout() {
   const epoch = await api.getLastEpoch();
 
   const lastEpoch = await kv.get(["lastEpoch"]);
-  if (Deno.args[1] == "force" || epoch.result.epoch > lastEpoch.value) {
+  if (
+    Deno.args[1] == "force" || epoch.result.epoch > (lastEpoch.value as number)
+  ) {
     bot.api.sendMessage(
       TELEGRAM_CHAT_ID,
       `Happy new epoch! ${epoch.result.epoch} 🎉`,
@@ -163,7 +165,11 @@ Pay: https://app.idena.io/dna/send?address=${delegator.address}&amount=${
           console.dir(lastEpochMining);
           await bot.api.sendMessage(
             TELEGRAM_CHAT_ID,
-            `Couldn't process ${delegator.address}. Please check the logs.`,
+            `Couldn't process ${delegator.address}. API returned data for epoch ${
+              lastEpochMining.result[0].epoch
+            } and ${lastEpochMining.result[1].epoch} but we expected ${
+              epoch.result.epoch - 1
+            } epoch.`,
           );
         }
       }
